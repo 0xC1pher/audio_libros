@@ -2,7 +2,7 @@ from gtts import gTTS
 import os
 from pydub import AudioSegment
 import threading
-import pdfplumber  # Biblioteca para leer PDFs
+import pdfplumber 
 
 class AudioBookCreator:
     def __init__(self, pdf_file, output_dir, start_page=None, end_page=None, chunk_size=500):
@@ -20,7 +20,7 @@ class AudioBookCreator:
                 total_pages = len(pdf.pages)
                 print(f"El PDF '{self.pdf_file}' tiene {total_pages} páginas.")
 
-                # Ajustar el rango de páginas si no se especifica
+               
                 if self.start_page is None:
                     self.start_page = 0
                 if self.end_page is None or self.end_page > total_pages:
@@ -52,21 +52,21 @@ class AudioBookCreator:
             tts.save(chunk_file)
             audio_files.append(chunk_file)
         
-        # Crear el directorio de salida si no existe
+        
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
         
-        # Combinar los archivos de audio
+        
         combined = AudioSegment.empty()
         for audio_file in audio_files:
             combined += AudioSegment.from_mp3(audio_file)
         
-        # Guardar el archivo de audio en el directorio especificado
+       
         output_file = os.path.join(self.output_dir, "audiolibro.mp3")
         combined.export(output_file, format="mp3")
         print(f"Audiolibro guardado como {output_file}")
         
-        # Limpiar archivos temporales
+        
         for audio_file in audio_files:
             os.remove(audio_file)
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
 #            "start_page": 1,  # Leer desde la página 1 (índice 0)
 #            "end_page": None  # Leer hasta la última página
 #        },
-        # Agrega más clientes según sea necesario
+        
     ]
 
     threads = []
