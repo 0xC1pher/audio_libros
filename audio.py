@@ -1,8 +1,8 @@
-from gtts import gTTS
 import os
 from pydub import AudioSegment
 import threading
-import pdfplumber 
+import pdfplumber
+import edge_tts
 
 class AudioBookCreator:
     def __init__(self, pdf_file, output_dir, start_page=None, end_page=None, chunk_size=500):
@@ -20,7 +20,6 @@ class AudioBookCreator:
                 total_pages = len(pdf.pages)
                 print(f"El PDF '{self.pdf_file}' tiene {total_pages} páginas.")
 
-               
                 if self.start_page is None:
                     self.start_page = 0
                 if self.end_page is None or self.end_page > total_pages:
@@ -37,6 +36,11 @@ class AudioBookCreator:
         """Divide el texto en chunks de tamaño especificado."""
         return [text[i:i+self.chunk_size] for i in range(0, len(text), self.chunk_size)]
 
+    async def text_to_speech(self, text, output_file):
+        """Convierte texto a voz usando edge-tts."""
+        communicate = edge_tts.Communicate(text, "es-ES-AlvaroNeural")  # Cambia la voz si es necesario
+        await communicate.save(output_file)
+
     def create_audiobook(self):
         text = self.extract_text_from_pdf()
         if not text:
@@ -47,25 +51,21 @@ class AudioBookCreator:
         audio_files = []
         
         for i, chunk in enumerate(chunks):
-            tts = gTTS(text=chunk, lang='es')  # Configura el idioma a español
             chunk_file = f"temp_chunk_{i}.mp3"
-            tts.save(chunk_file)
+            import asyncio
+            asyncio.run(self.text_to_speech(chunk, chunk_file))
             audio_files.append(chunk_file)
-        
         
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
-        
         
         combined = AudioSegment.empty()
         for audio_file in audio_files:
             combined += AudioSegment.from_mp3(audio_file)
         
-       
         output_file = os.path.join(self.output_dir, "audiolibro.mp3")
         combined.export(output_file, format="mp3")
         print(f"Audiolibro guardado como {output_file}")
-        
         
         for audio_file in audio_files:
             os.remove(audio_file)
