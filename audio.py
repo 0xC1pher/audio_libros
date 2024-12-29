@@ -1,19 +1,21 @@
 import os
-from pydub import AudioSegment
 import threading
 import pdfplumber
 import edge_tts
 import subprocess
+import asyncio
 from googletrans import Translator
+from moviepy.editor import AudioFileClip, concatenate_audioclips
 
 class AudioBookCreator:
-    def __init__(self, pdf_file, output_dir, start_page=None, end_page=None, chunk_size=500, translate_to_spanish=False):
+    def __init__(self, pdf_file, output_dir, start_page=None, end_page=None, chunk_size=500, translate_to_spanish=False, target_language='es'):
         self.pdf_file = pdf_file
         self.output_dir = output_dir
         self.start_page = start_page
         self.end_page = end_page
         self.chunk_size = chunk_size
         self.translate_to_spanish = translate_to_spanish
+        self.target_language = target_language
         self.translator = Translator()
 
     def extract_text_from_pdf(self):
@@ -30,7 +32,9 @@ class AudioBookCreator:
                     self.end_page = total_pages
 
                 for i in range(self.start_page, self.end_page):
-                    text += pdf.pages[i].extract_text()
+                    page_text = pdf.pages[i].extract_text()
+                    if page_text:
+                        text += page_text
             return text
         except Exception as e:
             print(f"Error extrayendo texto del PDF: {e}")
@@ -41,10 +45,10 @@ class AudioBookCreator:
         return [text[i:i+self.chunk_size] for i in range(0, len(text), self.chunk_size)]
 
     def translate_text(self, text):
-        """Traduce el texto al español si la opción está habilitada."""
+        """Traduce el texto al idioma de destino si la opción está habilitada."""
         if self.translate_to_spanish:
             try:
-                translated = self.translator.translate(text, src='en', dest='es')
+                translated = self.translator.translate(text, src='auto', dest=self.target_language)
                 return translated.text
             except Exception as e:
                 print(f"Error traduciendo el texto: {e}")
@@ -53,8 +57,11 @@ class AudioBookCreator:
 
     async def text_to_speech(self, text, output_file):
         """Convierte texto a voz usando edge-tts."""
-        communicate = edge_tts.Communicate(text, "es-ES-AlvaroNeural")  # Cambia la voz si es necesario
-        await communicate.save(output_file)
+        try:
+            communicate = edge_tts.Communicate(text, "es-ES-AlvaroNeural")  # Cambia la voz si es necesario
+            await communicate.save(output_file)
+        except Exception as e:
+            print(f"Error convirtiendo texto a voz: {e}")
 
     def create_audiobook(self):
         text = self.extract_text_from_pdf()
@@ -70,23 +77,28 @@ class AudioBookCreator:
         
         for i, chunk in enumerate(chunks):
             chunk_file = f"temp_chunk_{i}.mp3"
-            import asyncio
             asyncio.run(self.text_to_speech(chunk, chunk_file))
             audio_files.append(chunk_file)
         
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
-        
-        combined = AudioSegment.empty()
-        for audio_file in audio_files:
-            combined += AudioSegment.from_mp3(audio_file)
-        
-        output_file = os.path.join(self.output_dir, "audiolibro.mp3")
-        combined.export(output_file, format="mp3")
-        print(f"Audiolibro guardado como {output_file}")
-        
-        for audio_file in audio_files:
-            os.remove(audio_file)
+
+        # Combinación de archivos de audio con MoviePy
+        try:
+            clips = [AudioFileClip(file) for file in audio_files]
+            final_audio = concatenate_audioclips(clips)
+            output_file = os.path.join(self.output_dir, "audiolibro.mp3")
+            final_audio.write_audiofile(output_file)
+            print(f"Audiolibro guardado como {output_file}")
+        except Exception as e:
+            print(f"Error combinando archivos de audio: {e}")
+        finally:
+            # Limpieza de archivos temporales
+            for audio_file in audio_files:
+                try:
+                    os.remove(audio_file)
+                except Exception as e:
+                    print(f"Error eliminando archivo temporal {audio_file}: {e}")
 
     def play_audiobook(self):
         try:
@@ -102,22 +114,24 @@ def process_client(pdf_file, output_dir, start_page=None, end_page=None, transla
     audiobook_creator.play_audiobook()
 
 if __name__ == "__main__":
-    # Configuración de los clientes
+    # Configuración de los clientes (con idioma de destino)
     clients = [
         {
             "pdf_file": "GraphQLAttack.pdf",
             "output_dir": "Libro1_Audiolibro",
-            "start_page": 9,  # Leer desde la página 9 (índice 1)
-            "end_page": 12,    # Leer hasta la página 12 (índice 4)
-            "translate_to_spanish": True  # Traducir a español
+            "start_page": 9,
+            "end_page": 200,
+            "translate_to_spanish": True,
+            "target_language": "es"  # Español (por defecto)
         },
-        # {
-        #     "pdf_file": "libro2.pdf",
-        #     "output_dir": "Libro2_Audiolibro",
-        #     "start_page": 1,  # Leer desde la página 1 (índice 0)
-        #     "end_page": None,  # Leer hasta la última página
-        #     "translate_to_spanish": False  # No traducir
-        # },
+        {
+            "pdf_file": "libroRuso.pdf",
+            "output_dir": "Libro2_Audiolibro",
+            "start_page": 1,
+            "end_page": None,
+            "translate_to_spanish": False,
+            "target_language": "en"  # Inglés (ejemplo)
+        },
     ]
 
     threads = []
