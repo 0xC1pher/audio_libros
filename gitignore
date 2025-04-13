@@ -1,0 +1,80 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribución / paquetes instalables
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+
+# Instalación del paquete
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# PyInstaller
+#  Si se utiliza PyInstaller para generar ejecutables,
+#  estos archivos se generan en la carpeta 'dist'. En caso de que
+#  quieras controlar esos archivos, puedes comentarlos.
+# dist/
+
+# Archivos de compilación C/C++
+*.so
+
+# Pruebas y coverage
+.coverage
+.tox/
+.nox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Registros
+*.log
+
+# Archivos de configuración y entorno personal
+*.ini
+*.cfg
+*.env
+.env.*
+
+# Archivos generados por IDEs / editores
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*~
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos temporales de Jupyter Notebook
+.ipynb_checkpoints
+
+# Documentación
+/docs/_build/
+
+# Otros archivos y directorios a ignorar
+# Puedes agregar aquí otros patrones según las necesidades de tu proyecto.
