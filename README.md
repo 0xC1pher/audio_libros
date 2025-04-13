@@ -42,6 +42,26 @@ Utiliza tecnologías como:
 - Organización de archivos en directorios específicos
 - Notificaciones al finalizar el proceso
 
+## Capturas de Pantalla
+### Interfaz Principal
+![Vista Principal](vistas/v-1001.png)
+*Ventana principal con campos para seleccionar PDF y configurar opciones*
+
+### Selección de Páginas
+![Rango de Páginas](vistas/v-1002.png)
+*Configuración de páginas inicial y final para procesamiento parcial*
+
+### Progreso de Traducción
+![Progreso](vistas/v-1003.png)
+*Barra de progreso mostrando la traducción y generación de audio*
+
+### Resultado Final
+![Resultado](vistas/v-1004.png)
+*Archivo de audio generado y mensajes de confirmación*
+
+
+
+
 ## Requisitos
 - Python 3.8+
 - FFmpeg instalado en el sistema
